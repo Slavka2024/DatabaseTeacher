@@ -5,7 +5,7 @@ AS
 BEGIN
     DECLARE @SQL NVARCHAR(MAX);
     
-    SET @SQL = N'SELECT id, title, created_at 
+    SET @SQL = N'SELECT id, title, created_at, closed_at  
                  FROM ticket 
                  WHERE ' + QUOTENAME(@ColumnName) + N' LIKE ''%'' + @Value + ''%''';
     
