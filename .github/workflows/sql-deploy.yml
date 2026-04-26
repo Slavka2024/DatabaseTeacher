@@ -13,24 +13,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Install SqlPackage
-      run: dotnet tool install --global Microsoft.SqlPackage
-
-    - name: Add SqlPackage to PATH
-      run: echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
-
     - name: Build Database Project
-      run: dotnet build DatabaseTeacher/DatabaseTeacher.sqlproj -c Release
+      # Используем MSBuild вместо dotnet, так как это SQL проект
+      run: |
+        # Ищем MSBuild (обычно он есть, если установлен Visual Studio или Build Tools)
+        $msbuildPath = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter "MSBuild.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+        if (-not $msbuildPath) {
+            Write-Error "MSBuild not found. Please install Visual Studio Build Tools or SSDT."
+            exit 1
+        }
+        & $msbuildPath "DatabaseTeacher/DatabaseTeacher.sqlproj" /p:Configuration=Release
 
     - name: Publish to SQL Server
+      # Используем SqlPackage для публикации
       run: |
-        sqlpackage `
-          /Action:Publish `
-          /SourceFile:"./DatabaseTeacher/bin/Release/DatabaseTeacher.dacpac" `
-          /Profile:"./DatabaseTeacher/DatabaseTeacher.publish.xml" `
-          /TargetConnectionString:"${{ secrets.SQL_CONNECTION_STRING }}"
+        # Получаем путь к SqlPackage (он ставится вместе с SSDT)
+        $sqlPackagePath = (Get-ChildItem "C:\Program Files\Microsoft SQL Server" -Recurse -Filter "SqlPackage.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+        if (-not $sqlPackagePath) {
+            Write-Error "SqlPackage.exe not found. Please install SQL Server Data Tools (SSDT)."
+            exit 1
+        }
+        
+        $dacpacPath = "DatabaseTeacher/bin/Release/DatabaseTeacher.dacpac"
+        if (-not (Test-Path $dacpacPath)) {
+            Write-Error "Dacpac file not found at $dacpacPath"
+            exit 1
+        }
+
+        & $sqlPackagePath /Action:Publish /SourceFile:$dacpacPath /TargetDatabaseName:teacher /TargetServerName:"SLAVKA-ASUS\SLAVKASQLEXPRESS" /p:BlockOnPossibleDataLoss=False
