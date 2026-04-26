@@ -43,5 +43,5 @@ jobs:
             exit 1
         }
 
-        # Исправленная команда с TrustServerCertificate
-        & $sqlPackagePath /Action:Publish /SourceFile:$dacpacPath /TargetDatabaseName:teacher /TargetServerName:"SLAVKA-ASUS\SLAVKASQLEXPRESS" /p:BlockOnPossibleDataLoss=False /p:TrustServerCertificate=True
+        # Правильная команда с /TargetTrustServerCertificate как флагом
+        & $sqlPackagePath /Action:Publish /SourceFile:$dacpacPath /TargetDatabaseName:teacher /TargetServerName:"SLAVKA-ASUS\SLAVKASQLEXPRESS" /p:BlockOnPossibleDataLoss=False /TargetTrustServerCertificate
