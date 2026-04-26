@@ -90,4 +90,7 @@
     <Build Include="dbo\Stored Procedures\sp_UpdateTicketTitle.sql" />
     <Build Include="dbo\Stored Procedures\sp_SearchTickets.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Task01_TestEmployeeQuery.sql" />
+  </ItemGroup>
 </Project>
