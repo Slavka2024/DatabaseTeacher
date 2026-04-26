@@ -89,6 +89,7 @@
     <Build Include="dbo\Stored Procedures\SumRowTable.sql" />
     <Build Include="dbo\Stored Procedures\sp_UpdateTicketTitle.sql" />
     <Build Include="dbo\Stored Procedures\sp_SearchTickets.sql" />
+    <Build Include="dbo\Stored Procedures\sp_test_cicd.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Task01_TestEmployeeQuery.sql" />
