@@ -1,0 +1,36 @@
+name: Deploy SQL Database
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Install SqlPackage
+      run: dotnet tool install --global Microsoft.SqlPackage
+
+    - name: Add SqlPackage to PATH
+      run: echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
+
+    - name: Build Database Project
+      run: dotnet build DatabaseTeacher/DatabaseTeacher.sqlproj -c Release
+
+    - name: Publish to SQL Server
+      run: |
+        sqlpackage `
+          /Action:Publish `
+          /SourceFile:"./DatabaseTeacher/bin/Release/DatabaseTeacher.dacpac" `
+          /Profile:"./DatabaseTeacher/DatabaseTeacher.publish.xml" `
+          /TargetConnectionString:"${{ secrets.SQL_CONNECTION_STRING }}"
