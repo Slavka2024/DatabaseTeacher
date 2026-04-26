@@ -13,24 +13,35 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Install SqlPackage
-      run: dotnet tool install --global Microsoft.SqlPackage
-
-    - name: Add SqlPackage to PATH
-      run: echo "$env:USERPROFILE\.dotnet\tools" >> $env:GITHUB_PATH
-
     - name: Build Database Project
-      run: dotnet build DatabaseTeacher/DatabaseTeacher.sqlproj -c Release
+      run: |
+        $msbuildPath = (Get-ChildItem "C:\Program Files\Microsoft Visual Studio", "C:\Program Files (x86)\Microsoft Visual Studio" -Recurse -Filter "MSBuild.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+        
+        if (-not $msbuildPath) {
+            Write-Error "MSBuild not found."
+            exit 1
+        }
+        
+        & $msbuildPath "DatabaseTeacher/DatabaseTeacher.sqlproj" /p:Configuration=Release /t:Build
 
     - name: Publish to SQL Server
       run: |
-        sqlpackage `
-          /Action:Publish `
-          /SourceFile:"./DatabaseTeacher/bin/Release/DatabaseTeacher.dacpac" `
-          /Profile:"./DatabaseTeacher/DatabaseTeacher.publish.xml" `
-          /TargetConnectionString:"${{ secrets.SQL_CONNECTION_STRING }}"
+        $sqlPackagePath = "C:\Program Files\Microsoft SQL Server\170\DAC\bin\SqlPackage.exe"
+        
+        if (-not (Test-Path $sqlPackagePath)) {
+            $sqlPackagePath = (Get-ChildItem "C:\Program Files\Microsoft SQL Server", "C:\Program Files (x86)\Microsoft SQL Server" -Recurse -Filter "SqlPackage.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).FullName
+        }
+
+        if (-not (Test-Path $sqlPackagePath)) {
+            Write-Error "SqlPackage.exe not found."
+            exit 1
+        }
+        
+        $dacpacPath = "DatabaseTeacher/bin/Release/DatabaseTeacher.dacpac"
+        if (-not (Test-Path $dacpacPath)) {
+            Write-Error "Dacpac file not found."
+            exit 1
+        }
+
+        # Правильная команда с /TargetTrustServerCertificate как флагом
+        & $sqlPackagePath /Action:Publish /SourceFile:$dacpacPath /TargetDatabaseName:teacher /TargetServerName:"SLAVKA-ASUS\SLAVKASQLEXPRESS" /p:BlockOnPossibleDataLoss=False /TargetTrustServerCertificate
