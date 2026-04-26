@@ -5,7 +5,7 @@
 INSERT INTO employee (full_name, email, position_id, department_id)
 VALUES (
     'Петров Петр Петрович',
-    'petrov.test@company.ru',
+    'petrov.test4@company.ru',
     1,  -- Оператор 1-й линии
     1   -- ИТ-поддержка
 );
