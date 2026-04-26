@@ -93,5 +93,6 @@
   <ItemGroup>
     <None Include="Task01_TestEmployeeQuery.sql" />
     <None Include="Insert_New_Employee.sql" />
+    <None Include="DatabaseTeacher.publish.xml" />
   </ItemGroup>
 </Project>
